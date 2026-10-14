@@ -30,6 +30,7 @@ Rectangle {
 
   readonly property var availableCountries: Holidays.availableCountries()
   property string timezone: ""
+  property string utcOffset: ""
 
   // Read fresh each time the view opens, since the picker changes it behind
   // our back.
@@ -37,10 +38,14 @@ Rectangle {
 
   Process {
     id: timezoneProcess
-    command: ["timedatectl", "show", "-p", "Timezone", "--value"]
+    command: ["sh", "-c", "timedatectl show -p Timezone --value; date +%:z"]
     stdout: StdioCollector {
       waitForEnd: true
-      onStreamFinished: root.timezone = String(text || "").trim()
+      onStreamFinished: {
+        var lines = String(text || "").trim().split("\n")
+        root.timezone = (lines[0] || "").trim()
+        root.utcOffset = (lines[1] || "").trim()
+      }
     }
   }
 
@@ -158,7 +163,9 @@ Rectangle {
         }
 
         Button {
-          text: root.timezone !== "" ? root.timezone : "Pick timezone"
+          text: root.timezone === ""
+            ? "Pick timezone"
+            : root.timezone + (root.utcOffset !== "" ? "  UTC" + root.utcOffset : "")
           iconText: "󰥔"
           tooltipText: "Open Omarchy's timezone picker"
           bordered: true
