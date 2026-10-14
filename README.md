@@ -15,10 +15,11 @@ upstream, plus:
 ## Install
 
 ```sh
-omarchy plugin add https://github.com/houtvongsak/clock-byxax.git --enable
+omarchy plugin add https://github.com/houtvongsak/clock-byxax.git --enable --yes
 ```
 
-It replaces the built-in clock in the same bar slot. `omarchy plugin remove
+It replaces the built-in clock in the same bar slot, keeping your clock
+settings. `omarchy plugin remove
 io.github.houtvongsak.clock-byxax` puts the stock clock back.
 
 ## Holidays
