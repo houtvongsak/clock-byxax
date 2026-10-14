@@ -23,10 +23,12 @@ Rectangle {
     { title: "PANEL", rows: [
       ["Tab  Shift+Tab", "Next / previous bar panel"],
       ["Esc", "Close"],
+      ["s", "Settings"],
       ["?", "Toggle this help"]
     ]},
     { title: "MOUSE", rows: [
       ["Click W", "Toggle week start"],
+      ["Click the gear", "Settings"],
       ["Click the date", "Back to today"],
       ["Double-click year bar", "Set life bar (born / live to)"],
       ["Double-click life bar", "Remove life bar"]

@@ -4,22 +4,44 @@
 // stock clock files stay as close to upstream Omarchy as possible.
 
 var HOLIDAYS = Data.HOLIDAYS
+var COUNTRY_NAMES = Data.COUNTRY_NAMES
 
 // The "holidayCountries" setting: "US,KH", "us kh", or ["US", "KH"]. Unset
-// falls back to the country of the system locale (en_US -> US).
+// (null) falls back to the country of the system locale (en_US -> US); an
+// empty string means holidays are switched off.
 function parseCountries(value, localeName) {
+  if (value === undefined || value === null) {
+    var region = String(localeName || "").split(/[_-]/)[1]
+    return region ? [region.toUpperCase()] : []
+  }
+
   var list = Array.isArray(value)
     ? value
-    : String(value === undefined || value === null ? "" : value).split(/[\s,;]+/)
+    : String(value).split(/[\s,;]+/)
   var out = []
   for (var i = 0; i < list.length; i++) {
     var code = String(list[i]).replace(/^\s+|\s+$/g, "").toUpperCase()
     if (code !== "" && out.indexOf(code) === -1) out.push(code)
   }
-  if (out.length > 0) return out
+  return out
+}
 
-  var region = String(localeName || "").split(/[_-]/)[1]
-  return region ? [region.toUpperCase()] : []
+// Countries the bundled data covers, in the order they were generated.
+function availableCountries() {
+  return Object.keys(HOLIDAYS)
+}
+
+function countryName(code) {
+  return COUNTRY_NAMES[code] || code
+}
+
+// The setting value after switching one country on or off.
+function toggledCountries(countries, code) {
+  var out = countries.slice()
+  var at = out.indexOf(code)
+  if (at === -1) out.push(code)
+  else out.splice(at, 1)
+  return out.join(",")
 }
 
 // Every holiday on a "yyyy-MM-dd" day across the given countries, as

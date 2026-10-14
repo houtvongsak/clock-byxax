@@ -60,6 +60,7 @@ Panel {
   readonly property int lifeDonePercent: Model.lifeProgressPercent(age, lifeExpectancy)
   property bool editingLife: false
   property bool showingShortcuts: false
+  property bool showingSettings: false
 
   // Unset falls through to the locale's own first day, so a fresh install
   // starts out matching the rest of the desktop rather than a hardcoded
@@ -75,7 +76,7 @@ Panel {
   readonly property var weeks: Model.monthGrid(viewYear, viewMonth, weekStart, todayKey)
   // Public holidays are drawn in red. "holidayCountries" in shell.json takes
   // ISO country codes ("US,KH"); unset means the system locale's country.
-  readonly property var holidayCountries: Holidays.parseCountries(setting("holidayCountries", ""), Qt.locale().name)
+  readonly property var holidayCountries: Holidays.parseCountries(setting("holidayCountries", null), Qt.locale().name)
 
 
   // Guarded so the widget renders before the bar is injected (the bar-widget
@@ -105,6 +106,7 @@ Panel {
   function close() {
     setCenterHoverRevealSuppressed(false)
     root.showingShortcuts = false
+    root.showingSettings = false
     // Dismissing the panel mid-edit would otherwise leave the inputs up,
     // waiting behind a closed popup for the next time it opens.
     if (root.editingLife) root.cancelEditingLife()
@@ -263,6 +265,7 @@ Panel {
       onActivateRequested: root.goToToday()
       onCloseRequested: {
         if (root.showingShortcuts) root.showingShortcuts = false
+        else if (root.showingSettings) root.showingSettings = false
         else root.close()
       }
       onTabRequested: function(direction) { root.switchPanel(direction) }
@@ -275,6 +278,10 @@ Panel {
         else if (t === "w" || t === "W") root.toggleWeekStart()
         // "?" and Ctrl+? (which arrives as the 0x1f control character).
         else if (t === "?" || t === "\x1f") root.showingShortcuts = !root.showingShortcuts
+        else if (t === "s" || t === "S") {
+          root.showingShortcuts = false
+          root.showingSettings = !root.showingSettings
+        }
       }
 
       Flickable {
@@ -785,6 +792,36 @@ Panel {
             }
           }
         }
+      }
+
+      PanelActionButton {
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: Style.space(4)
+        iconText: "󰒓"
+        tooltipText: "Settings (s)"
+        foreground: Qt.darker(root.contentForeground, 1.9)
+        hoverColor: root.contentForeground
+        fontFamily: root.contentFontFamily
+        onClicked: root.showingSettings = true
+      }
+
+      SettingsOverlay {
+        anchors.fill: parent
+        visible: root.showingSettings
+        foreground: root.contentForeground
+        fontFamily: root.contentFontFamily
+        countries: root.holidayCountries
+        weekStart: root.weekStart
+        formats: root.hostWidget ? root.hostWidget.formatRing : []
+        currentFormat: root.hostWidget ? root.hostWidget.configuredFormat : ""
+        now: root.today
+        onHolidayCountriesPicked: function(value) { root.persistSettings({ holidayCountries: value }) }
+        onWeekStartPicked: function(day) { root.setWeekStart(day) }
+        onFormatPicked: function(format) {
+          root.persistSettings(root.hostWidget && root.hostWidget.vertical ? { verticalFormat: format } : { format: format })
+        }
+        onDismissed: root.showingSettings = false
       }
 
       ShortcutsOverlay {

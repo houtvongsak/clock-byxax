@@ -15,7 +15,33 @@
     "displayName": "clock-byxax",
     "description": "Date/time label with a calendar popup",
     "category": "Time",
-    "allowMultiple": false
+    "allowMultiple": false,
+    "schema": [
+      {
+        "key": "holidayCountries",
+        "type": "string",
+        "label": "Holiday countries",
+        "defaultValue": "",
+        "description": "Country codes whose public holidays are shown in red, e.g. US,KH. Unset uses your locale's country; empty turns holidays off."
+      },
+      {
+        "key": "weekStartDay",
+        "type": "enum",
+        "label": "Week starts on",
+        "options": [
+          "monday",
+          "sunday"
+        ],
+        "defaultValue": "monday"
+      },
+      {
+        "key": "format",
+        "type": "string",
+        "label": "Bar label format",
+        "defaultValue": "dddd HH:mm",
+        "description": "Qt date format; ww is the ISO week."
+      }
+    ]
   },
   "omarchy": {
     "clonedFrom": "omarchy.clock"
