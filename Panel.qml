@@ -59,6 +59,7 @@ Panel {
   readonly property real lifeDone: Model.lifeProgress(age, lifeExpectancy)
   readonly property int lifeDonePercent: Model.lifeProgressPercent(age, lifeExpectancy)
   property bool editingLife: false
+  property bool showingShortcuts: false
 
   // Unset falls through to the locale's own first day, so a fresh install
   // starts out matching the rest of the desktop rather than a hardcoded
@@ -103,6 +104,7 @@ Panel {
 
   function close() {
     setCenterHoverRevealSuppressed(false)
+    root.showingShortcuts = false
     // Dismissing the panel mid-edit would otherwise leave the inputs up,
     // waiting behind a closed popup for the next time it opens.
     if (root.editingLife) root.cancelEditingLife()
@@ -259,7 +261,10 @@ Panel {
         if (dy !== 0) root.moveYear(dy)
       }
       onActivateRequested: root.goToToday()
-      onCloseRequested: root.close()
+      onCloseRequested: {
+        if (root.showingShortcuts) root.showingShortcuts = false
+        else root.close()
+      }
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onTextKey: function(t) {
         if (t === "[") root.moveMonth(-1)
@@ -268,6 +273,8 @@ Panel {
         else if (t === "}") root.moveYear(1)
         else if (t === "t" || t === "T") root.goToToday()
         else if (t === "w" || t === "W") root.toggleWeekStart()
+        // "?" and Ctrl+? (which arrives as the 0x1f control character).
+        else if (t === "?" || t === "\x1f") root.showingShortcuts = !root.showingShortcuts
       }
 
       Flickable {
@@ -778,6 +785,14 @@ Panel {
             }
           }
         }
+      }
+
+      ShortcutsOverlay {
+        anchors.fill: parent
+        visible: root.showingShortcuts
+        foreground: root.contentForeground
+        fontFamily: root.contentFontFamily
+        onDismissed: root.showingShortcuts = false
       }
     }
   }

@@ -5,6 +5,8 @@ upstream, plus:
 
 - **Public holidays in red**, with the holiday name on hover. Ships US and
   Cambodia (KH); any country is one command away.
+- **Shortcut cheat sheet**: press `?` (or Ctrl+?) in the calendar popup to
+  see every key and mouse action; `?` or Esc puts it away.
 
 ## Install
 
