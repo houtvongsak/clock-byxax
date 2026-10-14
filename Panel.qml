@@ -3,6 +3,7 @@ import Quickshell
 import qs.Commons
 import qs.Ui
 import "Model.js" as Model
+import "Holidays.js" as Holidays
 
 // The clock's calendar popup: a month grid with ISO week numbers, built to
 // sit beside the weather panel — same hero-over-detail composition, same
@@ -71,6 +72,9 @@ Panel {
   readonly property string nextWeekStartLabel: labelLocale.dayName(Model.toggledWeekStart(weekStart), Locale.LongFormat)
   readonly property var weekdays: Model.weekdayOrder(weekStart)
   readonly property var weeks: Model.monthGrid(viewYear, viewMonth, weekStart, todayKey)
+  // Public holidays are drawn in red. "holidayCountries" in shell.json takes
+  // ISO country codes ("US,KH"); unset means the system locale's country.
+  readonly property var holidayCountries: Holidays.parseCountries(setting("holidayCountries", ""), Qt.locale().name)
 
 
   // Guarded so the widget renders before the bar is injected (the bar-widget
@@ -658,7 +662,9 @@ Panel {
                     model: modelData.days
 
                     Rectangle {
+                      id: dayCell
                       required property var modelData
+                      readonly property var holidays: Holidays.holidaysOn(modelData.key, root.holidayCountries)
 
                       width: root.cellWidth
                       height: root.cellHeight
@@ -673,12 +679,28 @@ Panel {
                         textFormat: Text.PlainText
                         anchors.centerIn: parent
                         text: modelData.day
-                        color: modelData.inMonth
+                        color: dayCell.holidays.length > 0
+                          ? (modelData.inMonth ? Color.urgent : Qt.darker(Color.urgent, 2.2))
+                          : modelData.inMonth
                           ? (modelData.weekend ? Qt.darker(root.contentForeground, 1.45) : root.contentForeground)
                           : Qt.darker(root.contentForeground, 2.2)
                         font.family: root.contentFontFamily
                         font.pixelSize: Style.font.body
                         font.bold: modelData.today
+                      }
+
+                      MouseArea {
+                        id: holidayMouse
+                        anchors.fill: parent
+                        visible: dayCell.holidays.length > 0
+                        hoverEnabled: true
+                        acceptedButtons: Qt.NoButton
+
+                        PanelToolTip {
+                          visible: holidayMouse.containsMouse
+                          text: Holidays.describe(dayCell.holidays, root.holidayCountries.length)
+                          fontFamily: root.contentFontFamily
+                        }
                       }
                     }
                   }

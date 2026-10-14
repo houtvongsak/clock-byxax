@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "id": "xax.clock",
-  "name": "My Clock",
+  "id": "io.github.houtvongsak.clock-byxax",
+  "name": "clock-byxax",
   "version": "1.0.0",
-  "author": "Omarchy",
-  "description": "Date/time label with a calendar popup",
+  "author": "houtvongsak",
+  "description": "Omarchy clock and calendar, tracking upstream, with public holidays in red",
   "kinds": [
     "bar-widget"
   ],
@@ -12,7 +12,7 @@
     "barWidget": "BarWidget.qml"
   },
   "barWidget": {
-    "displayName": "My Clock",
+    "displayName": "clock-byxax",
     "description": "Date/time label with a calendar popup",
     "category": "Time",
     "allowMultiple": false
