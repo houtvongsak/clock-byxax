@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Cut a release: bump manifest.json's version, commit, tag, push, and publish
+# a GitHub release with the given notes.
+#
+#   bin/release minor "Added week numbers to the bar label"   # 1.0.3 -> 1.1.0
+#   bin/release patch "Fixed holiday tooltip"                 # 1.1.0 -> 1.1.1
+#   bin/release major "..."                                   # 1.1.1 -> 2.0.0
+#
+# The GitHub Actions call this with "patch" after syncing Omarchy's clock or
+# refreshing the holiday data. Users receive whatever is on main through
+# `omarchy plugin update`; the version and tag are for people to read.
+
+set -euo pipefail
+
+usage() {
+  echo "usage: bin/release major|minor|patch \"release notes\"" >&2
+  exit 1
+}
+
+part="${1:-}"
+notes="${2:-}"
+[[ $part =~ ^(major|minor|patch)$ && -n $notes ]] || usage
+
+cd "$(dirname "$0")/.."
+
+[[ $(git branch --show-current) == main ]] || { echo "release from main" >&2; exit 1; }
+[[ -z $(git status --porcelain) ]] || { echo "working tree not clean; commit first" >&2; exit 1; }
+
+old=$(jq -r .version manifest.json)
+IFS=. read -r major minor patch <<<"$old"
+case "$part" in
+  major) new="$((major + 1)).0.0" ;;
+  minor) new="$major.$((minor + 1)).0" ;;
+  patch) new="$major.$minor.$((patch + 1))" ;;
+esac
+
+jq --arg v "$new" '.version = $v' manifest.json >manifest.json.tmp
+mv manifest.json.tmp manifest.json
+git commit -q -m "Release v$new" -m "$notes" manifest.json
+git tag -a "v$new" -m "v$new" -m "$notes"
+git push -q origin main "v$new"
+gh release create "v$new" --title "v$new" --notes "$notes" >/dev/null
+
+echo "Released v$new (was v$old)"

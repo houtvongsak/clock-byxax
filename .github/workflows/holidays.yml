@@ -1,7 +1,8 @@
 # Keeps holidays/ current without anyone running bin/generate-holidays: once
 # a year (and on demand from the Actions tab) it regenerates the data with
 # the latest python-holidays, moving the window to this year −5 … +10, and
-# commits the result if anything changed.
+# commits the result and cuts a patch release (bin/release) if anything
+# changed.
 name: Refresh holidays
 
 on:
@@ -15,10 +16,13 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -37,5 +41,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Refresh holidays ($(python -c 'import holidays; print("python-holidays", holidays.__version__)'))"
-          git push
+          version=$(python -c 'import holidays; print(holidays.__version__)')
+          years=$(jq -r '.years | join("–")' holidays/index.json)
+          git commit -q -m "Refresh holidays (python-holidays $version)"
+          bin/release patch "Refreshed holiday data for $years (python-holidays $version)."

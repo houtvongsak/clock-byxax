@@ -1,7 +1,7 @@
 # Keeps the clock in step with Omarchy without anyone having to remember:
 # every week it takes the stock clock from Omarchy's latest release tag, puts
-# it on the `upstream` branch, and merges that into `main`. Users then get it
-# through `omarchy plugin update`.
+# it on the `upstream` branch, merges that into `main`, and cuts a patch
+# release (bin/release). Users then get it through `omarchy plugin update`.
 #
 # If the merge conflicts (Omarchy changed the same lines we did), nothing on
 # main changes; the job fails and opens an issue so a person can resolve it.
@@ -74,8 +74,7 @@ jobs:
             exit 0
           fi
           if git merge --no-edit -m "Merge omarchy ${{ steps.release.outputs.tag }} clock into main" upstream; then
-            git push -q origin main
-            echo "Merged omarchy ${{ steps.release.outputs.tag }}."
+            bin/release patch "Synced with the clock from Omarchy ${{ steps.release.outputs.tag }}."
             exit 0
           fi
 

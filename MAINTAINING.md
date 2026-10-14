@@ -39,6 +39,22 @@ pip install holidays
 bin/generate-holidays
 ```
 
+## Releases
+
+Users get whatever is on `main` through `omarchy plugin update`; versions and
+tags are for people to read (`omarchy plugin list` shows the version).
+
+Both jobs above cut a patch release (1.0.0 → 1.0.1) via `bin/release`
+whenever they change something. For your own changes, commit them, then:
+
+```sh
+bin/release minor "Added X"   # new feature: 1.0.3 -> 1.1.0
+bin/release patch "Fixed Y"   # fix: 1.1.0 -> 1.1.1
+```
+
+It bumps `manifest.json`, commits, tags, pushes, and publishes the GitHub
+release. Run `git pull` first if a job has released since your last pull.
+
 ## Developing locally
 
 The plugin folder is a symlink to this repo:
