@@ -1,0 +1,91 @@
+# Keeps the clock in step with Omarchy without anyone having to remember:
+# every week it takes the stock clock from Omarchy's latest release tag, puts
+# it on the `upstream` branch, and merges that into `main`. Users then get it
+# through `omarchy plugin update`.
+#
+# If the merge conflicts (Omarchy changed the same lines we did), nothing on
+# main changes; the job fails and opens an issue so a person can resolve it.
+name: Sync with Omarchy
+
+on:
+  schedule:
+    - cron: "0 4 * * 1" # Mondays, 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency: sync-omarchy
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # Release tags, not the development branch: the plugin has to run on the
+      # Omarchy people actually have installed.
+      - name: Find Omarchy's latest release
+        id: release
+        run: |
+          tag=$(git ls-remote --tags --refs https://github.com/basecamp/omarchy \
+            | awk -F/ '{print $3}' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          [ -n "$tag" ] || { echo "no release tag found" >&2; exit 1; }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Latest Omarchy release: $tag"
+
+      - name: Fetch its clock
+        run: |
+          git clone -q --depth 1 --branch "${{ steps.release.outputs.tag }}" --filter=blob:none --sparse \
+            https://github.com/basecamp/omarchy "$RUNNER_TEMP/omarchy"
+          git -C "$RUNNER_TEMP/omarchy" sparse-checkout set shell/plugins/panels/clock
+
+      # manifest.json is ours (id/name differ from the built-in), so it is left
+      # alone; every other file mirrors the release exactly, deletions included.
+      - name: Update the upstream branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git checkout -q upstream
+          git ls-files | grep -vx manifest.json | xargs -r git rm -q
+          find "$RUNNER_TEMP/omarchy/shell/plugins/panels/clock" -mindepth 1 -maxdepth 1 \
+            ! -name manifest.json -exec cp -a {} . \;
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Stock clock unchanged."
+          else
+            git commit -q -m "Sync stock omarchy.clock from omarchy ${{ steps.release.outputs.tag }}"
+            git push -q origin upstream
+          fi
+
+      # Checked on every run, not just when upstream moved, so a merge that
+      # was blocked by a conflict is retried once it has been resolved.
+      - name: Merge into main
+        run: |
+          git checkout -q main
+          if git merge-base --is-ancestor upstream main; then
+            echo "main already has every upstream change."
+            exit 0
+          fi
+          if git merge --no-edit -m "Merge omarchy ${{ steps.release.outputs.tag }} clock into main" upstream; then
+            git push -q origin main
+            echo "Merged omarchy ${{ steps.release.outputs.tag }}."
+            exit 0
+          fi
+
+          conflicts=$(git diff --name-only --diff-filter=U | sed 's/^/- `/; s/$/`/')
+          git merge --abort
+          title="Omarchy ${{ steps.release.outputs.tag }} clock conflicts with our changes"
+          if [ -z "$(gh issue list --state open --search "in:title \"$title\"" --json number -q '.[].number')" ]; then
+            gh issue create --title "$title" --body "$(printf '%s\n\n%s\n\n%s\n' \
+              "The weekly sync could not merge Omarchy's clock into \`main\`. These files conflict:" \
+              "$conflicts" \
+              "Resolve locally: \`git pull && git merge origin/upstream\`, fix the conflicts, commit, push. The next run will see main is up to date.")"
+          fi
+          exit 1
