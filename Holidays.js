@@ -10,8 +10,9 @@
 // empty string means holidays are switched off.
 function parseCountries(value, localeName) {
   if (value === undefined || value === null) {
-    var region = String(localeName || "").split(/[_-]/)[1]
-    return region ? [region.toUpperCase()] : []
+    var region = String(localeName || "").split(/[_.@-]/)[1]
+    region = String(region || "").toUpperCase()
+    return /^[A-Z]{2}$/.test(region) ? [region] : []
   }
 
   var list = Array.isArray(value)
@@ -20,7 +21,8 @@ function parseCountries(value, localeName) {
   var out = []
   for (var i = 0; i < list.length; i++) {
     var code = String(list[i]).replace(/^\s+|\s+$/g, "").toUpperCase()
-    if (code !== "" && out.indexOf(code) === -1) out.push(code)
+    // Codes become file names in holidays/, so nothing but two letters.
+    if (/^[A-Z]{2}$/.test(code) && out.indexOf(code) === -1) out.push(code)
   }
   return out
 }

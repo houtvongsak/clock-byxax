@@ -25,6 +25,10 @@ click the ⚙️ in the calendar and pick your countries.
 |---|---|---|
 | <img src="screenshots/holiday-hover.png" width="300" alt="Hovering a holiday shows its name"> | <img src="screenshots/settings.png" width="300" alt="Settings: holiday countries, week start, timezone, bar label"> | <img src="screenshots/shortcuts.png" width="300" alt="Shortcut cheat sheet"> |
 
+Needs Omarchy 4 (Quattro). No extra packages: it uses only Omarchy's shell,
+`timedatectl` (systemd) to show your timezone, and Omarchy's own timezone
+picker.
+
 ## Update / remove
 
 ```sh
@@ -34,5 +38,5 @@ omarchy plugin remove io.github.houtvongsak.clock-byxax   # stock clock comes ba
 
 ---
 
-Built on Omarchy's own [`omarchy.clock`](https://github.com/basecamp/omarchy).
+MIT licensed. Built on Omarchy's own [`omarchy.clock`](https://github.com/basecamp/omarchy).
 Holiday data from [python-holidays](https://github.com/vacanza/holidays).

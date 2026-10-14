@@ -233,6 +233,7 @@ Rectangle {
 
           Text {
             id: formatText
+            textFormat: Text.PlainText
             anchors.left: parent.left
             anchors.leftMargin: Style.space(6)
             anchors.verticalCenter: parent.verticalCenter
