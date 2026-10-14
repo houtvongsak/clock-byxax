@@ -21,9 +21,9 @@ click the ⚙️ in the calendar and pick your countries.
 
 ## Screenshots
 
-| Settings (⚙️ or `s`) | Shortcuts (`?`) |
-|---|---|
-| <img src="screenshots/settings.png" width="420" alt="Settings: holiday countries, week start, timezone, bar label"> | <img src="screenshots/shortcuts.png" width="420" alt="Shortcut cheat sheet"> |
+| Hover a red day | Settings (⚙️ or `s`) | Shortcuts (`?`) |
+|---|---|---|
+| <img src="screenshots/holiday-hover.png" width="300" alt="Hovering a holiday shows its name"> | <img src="screenshots/settings.png" width="300" alt="Settings: holiday countries, week start, timezone, bar label"> | <img src="screenshots/shortcuts.png" width="300" alt="Shortcut cheat sheet"> |
 
 ## Update / remove
 
