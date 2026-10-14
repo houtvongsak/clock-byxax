@@ -1,18 +1,14 @@
 # clock-byxax
 
-Omarchy's built-in clock and calendar, plus:
+**Omarchy's calendar, now with public holidays — for your country, in red.**
 
-- **Public holidays in red** for any of ~250 countries, with the holiday
-  name on hover. Lunar-calendar holidays (Khmer New Year, Pchum Ben, …)
-  included.
-- **Settings**: the gear in the popup's corner (or `s`) picks holiday
-  countries, the week start, the bar label format, and opens Omarchy's
-  timezone picker (shown with its UTC offset).
-- **Shortcut cheat sheet**: press `?` (or Ctrl+?) in the calendar popup to
-  see every key and mouse action.
+<img src="screenshots/calendar.png" width="560" alt="Calendar with Cambodian holidays in red">
 
-Everything else is Omarchy's own clock, kept in step with each Omarchy
-release automatically.
+- 🔴 **Holidays in red** — ~250 countries, lunar ones too (Khmer New Year, Pchum Ben, Lunar New Year…)
+- ⚙️ **Settings in the popup** — countries, week start, bar format, timezone
+- ⌨️ **Press `?`** — every shortcut at a glance
+- 🔄 **Always current** — tracks every Omarchy release automatically
+- 📴 **Offline** — nothing is fetched, ever
 
 ## Install
 
@@ -20,28 +16,23 @@ release automatically.
 omarchy plugin add https://github.com/houtvongsak/clock-byxax.git --enable --yes
 ```
 
-It replaces the built-in clock in the same bar slot, keeping your clock
-settings. Pick your holiday countries in Settings; until then it uses your
-locale's country (`en_US` → US).
+It takes the built-in clock's place and keeps your clock settings. Then
+click the ⚙️ in the calendar and pick your countries.
 
-## Update
+## Screenshots
+
+| Settings (⚙️ or `s`) | Shortcuts (`?`) |
+|---|---|
+| <img src="screenshots/settings.png" width="420" alt="Settings: holiday countries, week start, timezone, bar label"> | <img src="screenshots/shortcuts.png" width="420" alt="Shortcut cheat sheet"> |
+
+## Update / remove
 
 ```sh
 omarchy plugin update io.github.houtvongsak.clock-byxax
+omarchy plugin remove io.github.houtvongsak.clock-byxax   # stock clock comes back
 ```
 
-This brings in the latest Omarchy clock changes and holiday data.
+---
 
-## Uninstall
-
-```sh
-omarchy plugin remove io.github.houtvongsak.clock-byxax
-```
-
-The stock clock comes back where it was.
-
-## Credits
-
-Based on `omarchy.clock` from [Omarchy](https://github.com/basecamp/omarchy).
-Holiday dates from [python-holidays](https://github.com/vacanza/holidays);
-nothing is fetched at runtime.
+Built on Omarchy's own [`omarchy.clock`](https://github.com/basecamp/omarchy).
+Holiday data from [python-holidays](https://github.com/vacanza/holidays).
