@@ -1,10 +1,9 @@
-.import "HolidayData.js" as Data
-
 // Public holiday lookup for the calendar grid. Kept out of Model.js so the
 // stock clock files stay as close to upstream Omarchy as possible.
-
-var HOLIDAYS = Data.HOLIDAYS
-var COUNTRY_NAMES = Data.COUNTRY_NAMES
+//
+// The data lives in holidays/<CODE>.json, one file per country; Panel.qml
+// loads only the countries switched on and passes them in as `data`
+// (country -> "yyyy-MM-dd" -> [names]).
 
 // The "holidayCountries" setting: "US,KH", "us kh", or ["US", "KH"]. Unset
 // (null) falls back to the country of the system locale (en_US -> US); an
@@ -26,30 +25,32 @@ function parseCountries(value, localeName) {
   return out
 }
 
-// Countries the bundled data covers, in the order they were generated.
-function availableCountries() {
-  return Object.keys(HOLIDAYS)
-}
-
-function countryName(code) {
-  return COUNTRY_NAMES[code] || code
-}
-
-// The setting value after switching one country on or off.
-function toggledCountries(countries, code) {
+// The setting value after adding or removing one country.
+function withCountry(countries, code) {
   var out = countries.slice()
-  var at = out.indexOf(code)
-  if (at === -1) out.push(code)
-  else out.splice(at, 1)
+  if (out.indexOf(code) === -1) out.push(code)
   return out.join(",")
+}
+
+function withoutCountry(countries, code) {
+  var out = []
+  for (var i = 0; i < countries.length; i++) if (countries[i] !== code) out.push(countries[i])
+  return out.join(",")
+}
+
+// holidays/index.json's [{code, name}] as code -> name.
+function namesByCode(index) {
+  var out = {}
+  for (var i = 0; i < (index || []).length; i++) out[index[i].code] = index[i].name
+  return out
 }
 
 // Every holiday on a "yyyy-MM-dd" day across the given countries, as
 // { country, name } pairs, in the order the countries were listed.
-function holidaysOn(key, countries) {
+function holidaysOn(key, countries, data) {
   var out = []
   for (var i = 0; i < countries.length; i++) {
-    var days = HOLIDAYS[countries[i]]
+    var days = data[countries[i]]
     var names = days ? days[key] : null
     if (!names) continue
     for (var j = 0; j < names.length; j++) out.push({ country: countries[i], name: names[j] })

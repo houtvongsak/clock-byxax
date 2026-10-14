@@ -17,6 +17,9 @@ Rectangle {
   property string fontFamily: Style.font.family
 
   property var countries: []
+  property var countryIndex: []
+  property var countryNames: ({})
+  property var holidayYears: []
   property int weekStart: 1
   property var formats: []
   property string currentFormat: ""
@@ -28,7 +31,20 @@ Rectangle {
   signal timezoneRequested()
   signal dismissed()
 
-  readonly property var availableCountries: Holidays.availableCountries()
+  // The search popup owns typing while it is open, so the calendar's own
+  // keys (h/l, t, s, ...) must stand down.
+  readonly property bool capturingKeys: countryPicker.popupOpen
+
+  // Every country not already on, labelled "Cambodia  KH" so either the name
+  // or the code finds it.
+  readonly property var addableCountries: {
+    var out = []
+    for (var i = 0; i < countryIndex.length; i++) {
+      var c = countryIndex[i]
+      if (countries.indexOf(c.code) === -1) out.push({ value: c.code, label: c.name + "  " + c.code })
+    }
+    return out
+  }
   property string timezone: ""
   property string utcOffset: ""
 
@@ -90,38 +106,51 @@ Rectangle {
       font.bold: true
     }
 
-    // ---- Holidays: one switch per country the bundled data covers.
+    // ---- Holidays: the countries switched on, each removable, and a
+    //      searchable picker over every country the data covers.
     Column {
       spacing: Style.space(6)
 
       PanelSectionHeader {
-        text: "HOLIDAYS IN RED"
+        text: "HOLIDAYS IN RED" + (root.holidayYears.length === 2 ? "  ·  " + root.holidayYears[0] + "–" + root.holidayYears[1] : "")
         foreground: root.foreground
         fontFamily: root.fontFamily
       }
 
-      Repeater {
-        model: root.availableCountries
+      Flow {
+        width: Style.space(420)
+        spacing: Style.space(6)
 
-        Row {
-          id: countryRow
-          required property string modelData
-          readonly property bool enabledCountry: root.countries.indexOf(modelData) !== -1
-          spacing: Style.space(12)
+        Repeater {
+          model: root.countries
 
-          ToggleSwitch {
-            anchors.verticalCenter: parent.verticalCenter
-            checked: countryRow.enabledCountry
+          Button {
+            required property string modelData
+            text: (root.countryNames[modelData] || modelData) + "  " + modelData
+            iconText: "󰅖"
+            tooltipText: "Stop showing these holidays"
+            bordered: true
             foreground: root.foreground
-            onToggled: root.holidayCountriesPicked(Holidays.toggledCountries(root.countries, countryRow.modelData))
+            fontFamily: root.fontFamily
+            fontSize: Style.font.bodySmall
+            onClicked: root.holidayCountriesPicked(Holidays.withoutCountry(root.countries, modelData))
           }
+        }
 
-          Text {
-            anchors.verticalCenter: parent.verticalCenter
-            text: Holidays.countryName(countryRow.modelData) + "  " + countryRow.modelData
-            color: countryRow.enabledCountry ? root.foreground : Qt.darker(root.foreground, 1.6)
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.bodySmall
+        SearchableDropdown {
+          id: countryPicker
+          width: Style.space(180)
+          showLabel: false
+          value: ""
+          options: root.addableCountries
+          triggerLabel: "Add country…"
+          placeholderText: "Country or code…"
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+          onChanged: function(code) {
+            if (code === "") return
+            root.holidayCountriesPicked(Holidays.withCountry(root.countries, code))
+            countryPicker.value = ""
           }
         }
       }

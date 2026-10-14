@@ -76,6 +76,7 @@ Panel {
   readonly property var weeks: Model.monthGrid(viewYear, viewMonth, weekStart, todayKey)
   // Public holidays are drawn in red. "holidayCountries" in shell.json takes
   // ISO country codes ("US,KH"); unset means the system locale's country.
+  // HolidayStore reads just those countries' files from holidays/.
   readonly property var holidayCountries: Holidays.parseCountries(setting("holidayCountries", null), Qt.locale().name)
 
 
@@ -243,6 +244,11 @@ Panel {
     }
   }
 
+  HolidayStore {
+    id: holidayStore
+    countries: root.holidayCountries
+  }
+
   KeyboardPanel {
     id: panel
     anchorItem: root.anchorItem
@@ -257,7 +263,7 @@ Panel {
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      blocked: root.editingLife
+      blocked: root.editingLife || settingsOverlay.capturingKeys
       onMoveRequested: function(dx, dy) {
         if (dx !== 0) root.moveMonth(dx)
         if (dy !== 0) root.moveYear(dy)
@@ -678,7 +684,7 @@ Panel {
                     Rectangle {
                       id: dayCell
                       required property var modelData
-                      readonly property var holidays: Holidays.holidaysOn(modelData.key, root.holidayCountries)
+                      readonly property var holidays: Holidays.holidaysOn(modelData.key, root.holidayCountries, holidayStore.data)
 
                       width: root.cellWidth
                       height: root.cellHeight
@@ -807,11 +813,15 @@ Panel {
       }
 
       SettingsOverlay {
+        id: settingsOverlay
         anchors.fill: parent
         visible: root.showingSettings
         foreground: root.contentForeground
         fontFamily: root.contentFontFamily
         countries: root.holidayCountries
+        countryIndex: holidayStore.index
+        countryNames: holidayStore.names
+        holidayYears: holidayStore.years
         weekStart: root.weekStart
         formats: root.hostWidget ? root.hostWidget.formatRing : []
         currentFormat: root.hostWidget ? root.hostWidget.configuredFormat : ""
