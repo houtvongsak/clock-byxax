@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Io
 import qs.Commons
 import qs.Ui
 import "Model.js" as Model
@@ -24,9 +25,24 @@ Rectangle {
   signal holidayCountriesPicked(string value)
   signal weekStartPicked(int day)
   signal formatPicked(string format)
+  signal timezoneRequested()
   signal dismissed()
 
   readonly property var availableCountries: Holidays.availableCountries()
+  property string timezone: ""
+
+  // Read fresh each time the view opens, since the picker changes it behind
+  // our back.
+  onVisibleChanged: if (visible) timezoneProcess.running = true
+
+  Process {
+    id: timezoneProcess
+    command: ["timedatectl", "show", "-p", "Timezone", "--value"]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: root.timezone = String(text || "").trim()
+    }
+  }
 
   // A format as the bar would show it right now; stacked vertical formats
   // are flattened onto one line.
@@ -106,24 +122,51 @@ Rectangle {
       }
     }
 
-    // ---- Week start, the same choice as clicking "W" on the grid.
-    Column {
-      spacing: Style.space(6)
+    // ---- Week start, the same choice as clicking "W" on the grid, beside
+    //      the timezone, which hands off to Omarchy's own picker — the same
+    //      one middle-clicking the bar clock opens.
+    Row {
+      spacing: Style.space(40)
 
-      PanelSectionHeader {
-        text: "WEEK STARTS ON"
-        foreground: root.foreground
-        fontFamily: root.fontFamily
+      Column {
+        spacing: Style.space(6)
+
+        PanelSectionHeader {
+          text: "WEEK STARTS ON"
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+        }
+
+        ButtonGroup {
+          options: [{ value: "1", label: "Monday" }, { value: "0", label: "Sunday" }]
+          value: String(root.weekStart)
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+          fontSize: Style.font.bodySmall
+          focusable: false
+          onChanged: function(value) { root.weekStartPicked(parseInt(value, 10)) }
+        }
       }
 
-      ButtonGroup {
-        options: [{ value: "1", label: "Monday" }, { value: "0", label: "Sunday" }]
-        value: String(root.weekStart)
-        foreground: root.foreground
-        fontFamily: root.fontFamily
-        fontSize: Style.font.bodySmall
-        focusable: false
-        onChanged: function(value) { root.weekStartPicked(parseInt(value, 10)) }
+      Column {
+        spacing: Style.space(6)
+
+        PanelSectionHeader {
+          text: "TIMEZONE"
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+        }
+
+        Button {
+          text: root.timezone !== "" ? root.timezone : "Pick timezone"
+          iconText: "󰥔"
+          tooltipText: "Open Omarchy's timezone picker"
+          bordered: true
+          foreground: root.foreground
+          fontFamily: root.fontFamily
+          fontSize: Style.font.bodySmall
+          onClicked: root.timezoneRequested()
+        }
       }
     }
 

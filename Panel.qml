@@ -821,6 +821,10 @@ Panel {
         onFormatPicked: function(format) {
           root.persistSettings(root.hostWidget && root.hostWidget.vertical ? { verticalFormat: format } : { format: format })
         }
+        onTimezoneRequested: {
+          root.close()
+          if (root.bar) root.bar.run("omarchy-menu-timezone")
+        }
         onDismissed: root.showingSettings = false
       }
 

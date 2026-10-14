@@ -28,7 +28,7 @@ Rectangle {
     ]},
     { title: "MOUSE", rows: [
       ["Click W", "Toggle week start"],
-      ["Click the gear", "Settings"],
+      ["Click the gear", "Settings, timezone"],
       ["Click the date", "Back to today"],
       ["Double-click year bar", "Set life bar (born / live to)"],
       ["Double-click life bar", "Remove life bar"]
