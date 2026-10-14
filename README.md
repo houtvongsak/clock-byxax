@@ -30,7 +30,7 @@ fetched at runtime. To add countries or refresh the data:
 
 ```sh
 pip install holidays
-bin/generate-holidays US KH TH   # ISO 3166-1 alpha-2 codes
+bin/generate-holidays US KH   # ISO 3166-1 alpha-2 codes
 ```
 
 ## Staying on top of upstream Omarchy

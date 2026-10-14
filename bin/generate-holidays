@@ -6,7 +6,7 @@
 #
 #   pip install holidays
 #   bin/generate-holidays            # default countries
-#   bin/generate-holidays US KH TH   # any ISO 3166-1 alpha-2 codes
+#   bin/generate-holidays US KH      # any ISO 3166-1 alpha-2 codes
 #
 # The data is baked into the plugin so the calendar never goes online.
 
