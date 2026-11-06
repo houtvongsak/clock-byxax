@@ -21,6 +21,8 @@ var WEEKDAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "fr
 var CLOCK_FORMATS = [
   "dddd HH:mm",
   "dddd h:mm AP",
+  "dddd HH:mm:ss",
+  "dddd h:mm:ss AP",
   "HH:mm",
   "h:mm AP",
   "ddd d MMM HH:mm",
@@ -38,6 +40,15 @@ var VERTICAL_CLOCK_FORMATS = [
   "dd\nMMM\n'W'ww\n''yy",
   "HH\nmm"
 ]
+
+// Whether a format prints seconds, so the widget can tick once a second only
+// for the formats that show them. Quoted literals go first: the s in a 'Sat'
+// is text rather than a token, and an opening quote with no closing one runs
+// to the end of the format the way Qt reads it.
+function clockNeedsSeconds(format) {
+  var text = String(format === undefined || format === null ? "" : format)
+  return /s/.test(text.replace(/'[^']*'?/g, ""))
+}
 
 function clockFormats(vertical) {
   return vertical ? VERTICAL_CLOCK_FORMATS.slice() : CLOCK_FORMATS.slice()
@@ -269,6 +280,13 @@ function monthGrid(year, month, weekStart, todayKey) {
   return weeks
 }
 
+// Milliseconds from nowMs to the next whole step (1000 or 60000), always in
+// (0, step]. Counted on the epoch clock: local wall time repeats an hour when
+// daylight saving ends, and a whole local minute starts on a whole epoch one.
+function msUntilNextTick(nowMs, step) {
+  return step - nowMs % step
+}
+
 // UTC for the same reason as the grid: the month is read back off the date, so
 // a first of the month that has no local midnight would step into the wrong one.
 function stepMonth(year, month, delta) {
@@ -278,6 +296,7 @@ function stepMonth(year, month, delta) {
 
 if (typeof module !== "undefined") {
   module.exports = {
+    msUntilNextTick: msUntilNextTick,
     dateKey: dateKey,
     keyForDate: keyForDate,
     normalizedWeekStart: normalizedWeekStart,
@@ -298,6 +317,7 @@ if (typeof module !== "undefined") {
     monthGrid: monthGrid,
     stepMonth: stepMonth,
     clockFormats: clockFormats,
+    clockNeedsSeconds: clockNeedsSeconds,
     clockFormatRing: clockFormatRing,
     nextClockFormat: nextClockFormat,
     isoWeekLiteral: isoWeekLiteral
